@@ -93,6 +93,7 @@ struct GenericACLs
 //          -------|-------|-------|-------
 static bool matches(const ACL::Entity& request, const ACL::Entity& acl)
 {
+	LOG(WARNING) << "HELLO: MATCHES";
   // NONE only matches with NONE.
   if (request.type() == ACL::Entity::NONE) {
     return acl.type() == ACL::Entity::NONE;
@@ -144,6 +145,7 @@ static bool matches(const ACL::Entity& request, const ACL::Entity& acl)
 //          -------|-------|-------|-------
 static bool allows(const ACL::Entity& request, const ACL::Entity& acl)
 {
+	LOG(WARNING) << "HELLO: ALLOWS";
   // NONE is only allowed by NONE.
   if (request.type() == ACL::Entity::NONE) {
     return acl.type() == ACL::Entity::NONE;
@@ -240,6 +242,7 @@ public:
         }
         case authorization::RUN_TASK: {
           aclObject.set_type(mesos::ACL::Entity::SOME);
+
           if (object->task_info && object->task_info->has_command() &&
               object->task_info->command().has_user()) {
             aclObject.add_values(object->task_info->command().user());
@@ -442,6 +445,7 @@ public:
 
   Future<bool> authorized(const authorization::Request& request)
   {
+
     return getObjectApprover(request.subject(), request.action())
       .then([=](const Owned<ObjectApprover>& objectApprover) -> Future<bool> {
         Option<ObjectApprover::Object> object = None();
@@ -493,7 +497,8 @@ private:
       const authorization::Action& action,
       const ACLs& acls)
   {
-    vector<GenericACL> acls_;
+
+   vector<GenericACL> acls_;
 
     switch (action) {
       case authorization::REGISTER_FRAMEWORK_WITH_ROLE:
@@ -769,6 +774,7 @@ Option<Error> LocalAuthorizer::validate(const ACLs& acls)
 {
   if (acls.update_quotas_size() > 0 &&
       (acls.set_quotas_size() > 0 || acls.remove_quotas_size() > 0)) {
+
     return Error("acls.update_quotas cannot be used "
                  "together with deprecated set_quotas/remove_quotas!");
   }
@@ -808,6 +814,7 @@ Option<Error> LocalAuthorizer::validate(const ACLs& acls)
 LocalAuthorizer::LocalAuthorizer(const ACLs& acls)
     : process(new LocalAuthorizerProcess(acls))
 {
+
   spawn(process);
 }
 
@@ -846,6 +853,7 @@ process::Future<bool> LocalAuthorizer::authorized(
       request.object().has_executor_info() ||
       request.object().has_quota_info())));
 
+  request.object().task_info().PrintDebugString();
   typedef Future<bool> (LocalAuthorizerProcess::*F)(
       const authorization::Request&);
 

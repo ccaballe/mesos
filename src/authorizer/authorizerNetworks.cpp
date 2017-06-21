@@ -14,48 +14,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string>
-
-#include <mesos/mesos.hpp>
-#include <mesos/module.hpp>
+#include <mesos/authorizer/authorizer.hpp>
 
 #include <mesos/authorizer/acls.hpp>
-#include <mesos/authorizer/authorizer.hpp>
 
 #include <mesos/module/authorizer.hpp>
 
-#include <stout/foreach.hpp>
-#include <stout/option.hpp>
 #include <stout/path.hpp>
-#include <stout/try.hpp>
 
 #include "authorizer/local/authorizerNetworks.hpp"
 
-
 #include "common/parse.hpp"
 
+#include "master/constants.hpp"
+
+#include "module/manager.hpp"
+
+using std::ostream;
 using std::string;
 
-using namespace mesos;
+using mesos::internal::LocalAuthorizerNetworks;
 
-static Authorizer* createLocalAuthorizer(const Parameters& parameters)
-{
-  Try<Authorizer*> local = mesos::internal::LocalAuthorizerNetworks::create(parameters);
-  if (local.isError()) {
-    return nullptr;
-  }
+namespace mesos {
 
-  return local.get();
+Try<Authorizer*> Authorizer::create(const string &name) {
+  return modules::ModuleManager::create<Authorizer>(name);
 }
 
 
-// Declares an Authorizer module named
-// 'org_apache_mesos_TestLocalAuthorizer'.
-mesos::modules::Module<Authorizer> org_apache_mesos_TestLocalAuthorizer(
-    MESOS_MODULE_API_VERSION,
-    MESOS_VERSION,
-    "Apache Mesos",
-    "modules@mesos.apache.org",
-    "Test Authorizer module.",
-    nullptr,
-    createLocalAuthorizer);
+Try<Authorizer*> Authorizer::create(const ACLs& acls)
+{
+  return LocalAuthorizerNetworks::create(acls);
+}
+
+} // namespace mesos {
